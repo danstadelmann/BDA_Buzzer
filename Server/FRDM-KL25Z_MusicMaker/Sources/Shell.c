@@ -34,7 +34,6 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
   buf[0] = '\0';
   (void)CLS1_ParseWithCommandTable((unsigned char*)CLS1_CMD_HELP, CLS1_GetStdio(), CmdParserTable);
   FAT1_Init();
-  VS_Highlevelinit();
   for(;;) {
     (void)FAT1_CheckCardPresence(&cardMounted,
         "0" /* drive */, &fileSystemObject, CLS1_GetStdio());

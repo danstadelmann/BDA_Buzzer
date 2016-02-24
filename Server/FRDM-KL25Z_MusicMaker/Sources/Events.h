@@ -61,7 +61,6 @@
 #include "BitIoLdd6.h"
 #include "DREQ.h"
 #include "BitIoLdd5.h"
-#include "KSDK1.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,20 +171,6 @@ void SD1_OnDeactivate(byte mode);
 **         Event called when Deactivate() method is called. This gives
 **         an opportunity to the application to synchronize access to a
 **         shared bus.
-**     Parameters  : None
-**     Returns     : Nothing
-** ===================================================================
-*/
-
-void EInt1_OnInterrupt(void);
-/*
-** ===================================================================
-**     Event       :  EInt1_OnInterrupt (module Events)
-**
-**     Component   :  EInt1 [ExtInt]
-**     Description :
-**         This event is called when an active signal edge/level has
-**         occurred.
 **     Parameters  : None
 **     Returns     : Nothing
 ** ===================================================================

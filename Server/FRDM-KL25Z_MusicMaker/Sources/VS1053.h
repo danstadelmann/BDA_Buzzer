@@ -86,7 +86,5 @@ void VS_Init(void);
  * \brief Driver deinitalization
  */
 void VS_Deinit(void);
-void VS_Highlevelinit(void);
-
 
 #endif /* VS1053_H_ */
