@@ -68,6 +68,7 @@ uint8_t VS_PlaySong(const uint8_t *fileName, const CLS1_StdIOType *io);
  * \return Error code, ERR_OK if everything is OK
  */
 uint8_t VS_ReadRegister(uint8_t reg, uint16_t *value);
+uint8_t VS_SendData(uint8_t *data, size_t dataSize);
 
 /*!
  * \brief Write a device register
@@ -76,6 +77,8 @@ uint8_t VS_ReadRegister(uint8_t reg, uint16_t *value);
  * \return Error code, ERR_OK if everything is OK
  */
 uint8_t VS_WriteRegister(uint8_t reg, uint16_t value);
+
+uint8_t VS_SetVolume(uint16_t leftright);
 
 /*!
  * \brief Driver initialization.

@@ -11,6 +11,13 @@
 #include "LEDG.h"
 #include "FAT1.h"
 #include "VS1053.h"
+#include "player.h"
+
+  #include "RApp.h"
+  #include "RNet_App.h"
+  #include "RNetConf.h"
+  #include "RStdIO.h"
+
 
 static const CLS1_ParseCommandCallback CmdParserTable[] =
 {
@@ -22,6 +29,9 @@ static const CLS1_ParseCommandCallback CmdParserTable[] =
   FAT1_ParseCommand,
 #endif
   VS_ParseCommand,
+  PLR_ParseCommand,
+  RNET1_ParseCommand,
+  RNETA_ParseCommand,
   NULL /* sentinel */
 };
 
@@ -29,6 +39,10 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
   bool cardMounted = FALSE;
   static FAT1_FATFS fileSystemObject;
   unsigned char buf[48];
+  static unsigned char radio_cmd_buf[48];
+  radio_cmd_buf[0] = '\0';
+  CLS1_ConstStdIOType *ioRemote = RSTDIO_GetStdioRx();
+  CLS1_ConstStdIOTypePtr ioLocal = CLS1_GetStdio();
 
   (void)pvParameters; /* not used */
   buf[0] = '\0';
@@ -45,6 +59,8 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
       LEDR_On();
     }
     (void)CLS1_ReadAndParseWithCommandTable(buf, sizeof(buf), CLS1_GetStdio(), CmdParserTable);
+    RSTDIO_Print(ioLocal); /* dispatch incoming messages */
+    (void)CLS1_ReadAndParseWithCommandTable(radio_cmd_buf, sizeof(radio_cmd_buf), ioRemote, CmdParserTable);
     FRTOS1_vTaskDelay(50/portTICK_RATE_MS);
   }
 }
