@@ -19,7 +19,19 @@
 #define VS_DATA_MODE_ON()       MCS_SetVal(); DCS_ClrVal()
 #define VS_DATA_MODE_OFF()      DCS_SetVal()
 
+/*queue CMD*/
+static xQueueHandle VS_CMD_QUEUE;
+
+#define VS_CMD_QUEUE_LENGTH    5 /* items in queue, that's my buffer size */
+#define VS_CMD_QUEUE_ITEMSIZE   8  /* each item is a single character */
+
 #define VS_DATA_SIZE_BYTES      32  /* always 32 bytes of data */
+
+typedef enum {
+  VS_PLAY_FILE,
+  VS_STOP,
+  VS_START,
+} VS_Commands;
 
 static volatile bool VS_SPIDataReceivedFlag = FALSE;
 static SemaphoreHandle_t spiSem;
@@ -164,7 +176,6 @@ uint8_t VS_PlaySong(const uint8_t *fileName, const CLS1_StdIOType *io) {
   uint8_t readBuf[32];
   uint8_t res = ERR_OK;
   static FIL fp;
-
   if (io!=NULL) {
     CLS1_SendStr("Playing file '", io->stdOut);
     CLS1_SendStr(fileName, io->stdOut);
@@ -284,13 +295,48 @@ void VS_Deinit(void) {
   /* nothing needed */
 }
 
+static portTASK_FUNCTION(VS1053_Task, pvParameters) {
+
+
+  (void)pvParameters; /* not used */
+
+  for(;;) {
+
+    FRTOS1_vTaskDelay(50/portTICK_RATE_MS);
+  }
+}
+
+
 void VS_Init(void) {
+
   MCS_SetVal(); /* chip select is low active, deselect it */
   DCS_SetVal(); /* data mode is low active, deselect data mode */
   VS_SPIDataReceivedFlag = FALSE; /* Initialization */
+
   spiSem = FRTOS1_xSemaphoreCreateRecursiveMutex();
   if (spiSem==NULL) { /* creation failed? */
     for(;;);
   }
   FRTOS1_vQueueAddToRegistry(spiSem, "SpiSem");
+  if (FRTOS1_xTaskCreate(VS1053_Task, "VS1053", configMINIMAL_STACK_SIZE+200, NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+      for(;;){} /* error */
+    }
+  VS_CMD_QUEUE = FRTOS1_xQueueCreate(VS_CMD_QUEUE_LENGTH, VS_CMD_QUEUE_ITEMSIZE);
+  FRTOS1_vQueueAddToRegistry(VS_CMD_QUEUE, "VS_CMD");
+  if (VS_CMD_QUEUE==NULL) {
+    for(;;){} /* out of memory? */
+  }
+
 }
+void VS_Highlevelinit(void){
+
+VS_WriteRegister(VS_VOL,0xFFFF);
+VS_WriteRegister(VS_AUDATA,10);
+WAIT1_Waitms(100);
+VS_WriteRegister(VS_VOL,0xFEFE);
+VS_WriteRegister(VS_AUDATA,44101);
+VS_WriteRegister(VS_VOL,0x2020);
+//VS_WriteRegister(VS_MODE,0x0040);
+
+}
+

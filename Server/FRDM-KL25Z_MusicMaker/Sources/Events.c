@@ -33,10 +33,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif 
-
+#include "VS1053.h"
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
-#include "VS1053.h"
+
 
 /*
 ** ===================================================================
@@ -185,6 +185,8 @@ void SD1_OnDeactivate(byte mode)
 {
   VS_OnSPIDeactivate();
 }
+
+
 
 
 /* END Events */
