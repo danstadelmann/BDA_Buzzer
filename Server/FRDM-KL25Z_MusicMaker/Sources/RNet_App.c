@@ -48,28 +48,8 @@ static uint8_t HandleDataRxMessage(RAPP_MSG_Type type, uint8_t size, uint8_t *da
   (void)size;
   (void)packet;
   switch(type) {
-    case RAPP_MSG_TYPE_DATA: /* generic data message */
-      *handled = TRUE;
-      val = *data; /* get data value */
-
-      CLS1_SendStr((unsigned char*)"Data: ", io->stdOut);
-      CLS1_SendNum8u(val, io->stdOut);
-      CLS1_SendStr((unsigned char*)" from addr 0x", io->stdOut);
-      buf[0] = '\0';
-#if RNWK_SHORT_ADDR_SIZE==1
-      UTIL1_strcatNum8Hex(buf, sizeof(buf), srcAddr);
-#else
-      UTIL1_strcatNum16Hex(buf, sizeof(buf), srcAddr);
-#endif
-      UTIL1_strcat(buf, sizeof(buf), (unsigned char*)"\r\n");
-      CLS1_SendStr(buf, io->stdOut);
-      return ERR_OK;
-    default: /*! \todo Handle your own messages here */
-      break;
-
-    case RAPP_MSG_TYPE_HONK:
+     case RAPP_MSG_TYPE_HONK:
     	VS_PlaySong("t1.mp3",CLS1_GetStdio());
-
 	break;
   } /* switch */
   return ERR_OK;
@@ -207,15 +187,6 @@ uint8_t RNETA_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_S
       (void)RNWK_SetThisNodeAddr((RNWK_ShortAddrType)val16);
     } else {
       CLS1_SendStr((unsigned char*)"ERR: wrong address\r\n", io->stdErr);
-      return ERR_FAILED;
-    }
-  } else if (UTIL1_strncmp((char*)cmd, (char*)"app send val", sizeof("app send val")-1)==0) {
-    p = cmd + sizeof("app send val")-1;
-    *handled = TRUE;
-    if (UTIL1_ScanDecimal8uNumber(&p, &val8)==ERR_OK) {
-      (void)RAPP_SendPayloadDataBlock(&val8, sizeof(val8), RAPP_MSG_TYPE_DATA, APP_dstAddr, RPHY_PACKET_FLAGS_NONE); /* only send low byte */
-    } else {
-      CLS1_SendStr((unsigned char*)"ERR: wrong number format\r\n", io->stdErr);
       return ERR_FAILED;
     }
   } else if (UTIL1_strncmp((char*)cmd, (char*)"app daddr", sizeof("app daddr")-1)==0) {
