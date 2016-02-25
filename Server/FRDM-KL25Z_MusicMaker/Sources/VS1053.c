@@ -280,6 +280,9 @@ uint8_t VS_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_StdI
   return ERR_OK;
 }
 
+
+
+
 void VS_Deinit(void) {
   /* nothing needed */
 }
