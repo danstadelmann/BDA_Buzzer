@@ -57,7 +57,7 @@
 #include "BitIoLdd6.h"
 #include "DREQ.h"
 #include "BitIoLdd5.h"
-#include "KSDK1.h"
+#include "RNET1.h"
 #include "RNET1.h"
 #include "RF1.h"
 #include "CE1.h"
@@ -71,6 +71,7 @@
 #include "BitIoLdd10.h"
 #include "Output1.h"
 #include "BitIoLdd11.h"
+#include "KSDK1.h"
 /* Including shared modules, which are used for whole project */
 #include "PE_Types.h"
 #include "PE_Error.h"
