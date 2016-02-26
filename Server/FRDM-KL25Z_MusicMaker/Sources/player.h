@@ -7,8 +7,10 @@
 
 #ifndef SOURCES_PLAYER_H_
 #define SOURCES_PLAYER_H_
+#include "pl_conf.h"
+#if PLAYER
 #include "CLS1.h"
-#
+
 
 /*!
  * \brief Starts a new file. If a current file is playing playback will be stopped
@@ -29,7 +31,7 @@ uint8_t PLR_PlayFullFile(const char* filename);
  * \brief Pauses the playback. If no current file is open nothing happens.
  * \return standard errorcodes of pe_error.h
  */
-uint8_t PLR_PausePlayback(void);
+uint8_t PLR_PausePlayback(bool pause);
 
 
 /*
@@ -50,4 +52,5 @@ uint8_t PLR_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_Std
 void PLR_Init(void);
 
 void PLR_Deinit(void);
+#endif
 #endif /* SOURCES_PLAYER_H_ */

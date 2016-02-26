@@ -10,6 +10,7 @@
 #ifndef __RNET_APP_CONFIG__
 #define __RNET_APP_CONFIG__
 
+#include "pl_conf.h"
 /*! type ID's for application messages */
 typedef enum {
   RAPP_MSG_TYPE_STDIN = 0x40,

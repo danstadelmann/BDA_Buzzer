@@ -3,6 +3,7 @@
  *      Author: Erich Styger
  */
 
+#include "pl_conf.h"
 #include "VS1053.h"
 #include "MCS.h" /* low active chip select */
 #include "DCS.h" /* data control select */
@@ -52,7 +53,7 @@ static void VS_SPI_WRITE_READ(unsigned char write, unsigned char *readP) {
   while(!VS_SPIDataReceivedFlag){}
 }
 
-static bool VS_Ready(void) {
+ bool VS_Ready(void) {
   return DREQ_GetVal()!=0; /* HIGH: ready to receive data */
 }
 

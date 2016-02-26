@@ -8,7 +8,8 @@
 #ifndef RNETAPP_H_
 #define RNETAPP_H_
 
-
+#include "pl_conf.h"
+#if RADIO
 #include "RNWK.h"
 
 #include "CLS1.h"
@@ -26,5 +27,7 @@ void RNETA_Deinit(void);
 
 /*! \brief Driver initialization */
 void RNETA_Init(void);
+
+#endif
 
 #endif /* RNETAPP_H_ */

@@ -6,7 +6,7 @@
 
 #ifndef APPLICATION_H_
 #define APPLICATION_H_
-
+#include "pl_conf.h"
 /*!
  * \brief Run the application
  */
