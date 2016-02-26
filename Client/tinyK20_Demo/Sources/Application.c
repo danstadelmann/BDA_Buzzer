@@ -25,7 +25,7 @@ void APP_KeyEvntHandler(EVNT_Handle event) {
     case EVNT_SW1_PRESSED:
 		#if PL_CONFIG_HAS_RADIO
     		data = 'A';
-    		(void)RAPP_SendPayloadDataBlock(&data, sizeof(char_t), RAPP_MSG_TYPE_JOYSTICK_BTN, RNETA_GetDestAddr(), RPHY_PACKET_FLAGS_REQ_ACK);
+    		(void)RAPP_SendPayloadDataBlock(&data, sizeof(char_t), RAPP_MSG_TYPE_DATA, RNETA_GetDestAddr(), RPHY_PACKET_FLAGS_REQ_ACK);
 		#endif
     	#if !PL_CONFIG_EVENTS_AUTO_CLEAR
     		EVNT_ClearEvent(EVNT_SW1_PRESSED);

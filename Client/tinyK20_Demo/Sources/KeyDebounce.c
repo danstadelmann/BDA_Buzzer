@@ -37,26 +37,6 @@ static DBNC_KeySet KEYDBNC_GetKeys(void) {
     keys |= (1<<2);
   }
 #endif
-#if PL_CONFIG_NOF_KEYS >= 4
-  if (KEY4_Get()) {
-    keys |= (1<<3);
-  }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 5
-  if (KEY5_Get()) {
-    keys |= (1<<4);
-  }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 6
-  if (KEY6_Get()) {
-    keys |= (1<<5);
-  }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 7
-  if (KEY7_Get()) {
-    keys |= (1<<6);
-  }
-#endif
   return keys;
 }
 
@@ -84,27 +64,7 @@ static void KEYDBNC_OnDebounceEvent(DBNC_EventKinds event, DBNC_KeySet keys) {
         EVNT_SetEvent(EVNT_SW3_PRESSED);
       }
 #endif
-#if PL_CONFIG_NOF_KEYS >= 4
-      if (keys==(1<<3)) {
-        EVNT_SetEvent(EVNT_SW4_PRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 5
-      if (keys==(1<<4)) {
-        EVNT_SetEvent(EVNT_SW5_PRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 6
-      if (keys==(1<<5)) {
-        EVNT_SetEvent(EVNT_SW6_PRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 7
-      if (keys==(1<<6)) {
-        EVNT_SetEvent(EVNT_SW7_PRESSED);
-      }
-#endif
-      break;
+     break;
 
     /* long pressed */
     case DBNC_EVENT_LONG_PRESSED:
@@ -121,26 +81,6 @@ static void KEYDBNC_OnDebounceEvent(DBNC_EventKinds event, DBNC_KeySet keys) {
 #if PL_CONFIG_NOF_KEYS >= 3
      if (keys==(1<<2)) {
         EVNT_SetEvent(EVNT_SW3_LPRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 4
-     if (keys==(1<<3)) {
-        EVNT_SetEvent(EVNT_SW4_LPRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 5
-     if (keys==(1<<4)) {
-        EVNT_SetEvent(EVNT_SW5_LPRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 6
-     if (keys==(1<<5)) {
-        EVNT_SetEvent(EVNT_SW6_LPRESSED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 7
-     if (keys==(1<<6)) {
-        EVNT_SetEvent(EVNT_SW7_LPRESSED);
       }
 #endif
      break;
@@ -160,26 +100,6 @@ static void KEYDBNC_OnDebounceEvent(DBNC_EventKinds event, DBNC_KeySet keys) {
 #if PL_CONFIG_NOF_KEYS >= 3
       if (keys==(1<<2)) {
         EVNT_SetEvent(EVNT_SW3_RELEASED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 4
-      if (keys==(1<<3)) {
-        EVNT_SetEvent(EVNT_SW4_RELEASED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 5
-      if (keys==(1<<4)) {
-        EVNT_SetEvent(EVNT_SW5_RELEASED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 6
-      if (keys==(1<<5)) {
-        EVNT_SetEvent(EVNT_SW6_RELEASED);
-      }
-#endif
-#if PL_CONFIG_NOF_KEYS >= 7
-      if (keys==(1<<6)) {
-        EVNT_SetEvent(EVNT_SW7_RELEASED);
       }
 #endif
       break;
