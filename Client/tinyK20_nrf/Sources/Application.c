@@ -9,29 +9,37 @@
 #include "LED1.h"
 #include "RNet_App.h"
 #include "RApp.h"
+#include "SHP.h"
 
 void APP_DebugPrint(uint8_t *str) {
- /* dummy */
+	/* dummy */
 }
 
 static void led_task(void *param) {
-  (void)param;
-  uint8_t data = 'A';
-  for(;;) {
-	 (void)RAPP_SendPayloadDataBlock(&data, sizeof(char_t), RAPP_MSG_TYPE_DATA, RNETA_GetDestAddr(), RPHY_PACKET_FLAGS_REQ_ACK);
-    LED1_Neg();
-    vTaskDelay(pdMS_TO_TICKS(1000));
-  } /* for */
+	(void) param;
+	uint8_t data = 'A';
+	for (;;) {
+		for(int i = 0; i<5;i++){(void) RAPP_SendPayloadDataBlock(&data, sizeof(char_t),
+				RAPP_MSG_TYPE_DATA, RNETA_GetDestAddr(),
+				RPHY_PACKET_FLAGS_REQ_ACK);}
+		LED1_On();
+		SHP_SetVal();
+		WAIT1_Waitms(5000);
+		SHP_ClrVal();
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	} /* for */
 }
 
 void APP_Run(void) {
-  SHELL_Init();
+	SHELL_Init();
 #if PL_CONFIG_HAS_RADIO
-  RNETA_Init();
+	RNETA_Init();
 #endif
-  if (xTaskCreate(led_task, "Led", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL) != pdPASS) {
-    for(;;){} /* error! probably out of memory */
-  }
-  vTaskStartScheduler();
+	if (xTaskCreate(led_task, "Led", configMINIMAL_STACK_SIZE, NULL,
+			tskIDLE_PRIORITY, NULL) != pdPASS) {
+		for (;;) {
+		} /* error! probably out of memory */
+	}
+	vTaskStartScheduler();
 }
 

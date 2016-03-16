@@ -32,6 +32,8 @@
 #include "Events.h"
 #include "RNET1.h"
 #include "UTIL1.h"
+#include "SHP.h"
+#include "BitIoLdd4.h"
 #include "RF1.h"
 #include "CE1.h"
 #include "BitIoLdd1.h"
