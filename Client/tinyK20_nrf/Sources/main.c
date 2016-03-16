@@ -1,10 +1,10 @@
 /* ###################################################################
 **     Filename    : main.c
-**     Project     : tinyK20_Demo
+**     Project     : tinyK20_nrf
 **     Processor   : MK20DX128VFT5
 **     Version     : Driver 01.01
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2015-06-19, 16:16, # CodeGen: 0
+**     Date/Time   : 2016-02-25, 18:31, # CodeGen: 0
 **     Abstract    :
 **         Main module.
 **         This module contains user's application code.
@@ -30,35 +30,24 @@
 /* Including needed modules to compile this module/procedure */
 #include "Cpu.h"
 #include "Events.h"
-#include "LED1.h"
-#include "LEDpin1.h"
+#include "RNET1.h"
+#include "UTIL1.h"
+#include "RF1.h"
+#include "CE1.h"
 #include "BitIoLdd1.h"
+#include "CSN1.h"
+#include "BitIoLdd2.h"
 #include "WAIT1.h"
 #include "FRTOS1.h"
-#include "UTIL1.h"
-#include "FAT1.h"
-#include "SD1.h"
-#include "SS1.h"
-#include "CD1.h"
-#include "TmDt1.h"
-#include "RTC1.h"
 #include "SM1.h"
 #include "SMasterLdd1.h"
-#include "TMOUT1.h"
-#include "CS1.h"
-#include "USB1.h"
-#include "USB0.h"
-#include "CDC1.h"
-#include "Tx1.h"
-#include "Rx1.h"
 #include "CLS1.h"
-#include "HF1.h"
-#include "KIN1.h"
-#include "PTC.h"
-#include "MINI1.h"
+#include "CS1.h"
 #include "KSDK1.h"
-//#include "SYS1.h"
-//#include "RTT1.h"
+#include "LED1.h"
+#include "LEDpin1.h"
+#include "BitIoLdd3.h"
+#include "RTT1.h"
 /* Including shared modules, which are used for whole project */
 #include "PE_Types.h"
 #include "PE_Error.h"
@@ -72,18 +61,13 @@ int main(void)
 /*lint -restore Enable MISRA rule (6.3) checking. */
 {
   /* Write your local variable definition here */
-  int i;
 
   /*** Processor Expert internal initialization. DON'T REMOVE THIS CODE!!! ***/
   PE_low_level_init();
   /*** End of Processor Expert internal initialization.                    ***/
 
   /* Write your code here */
-  for(i=0;i<25;i++) { /* blink to indicate power up */
-    LED1_Neg();
-    WAIT1_Waitms(20);
-  }
-  APP_Run(); /* should not return */
+  APP_Run();
   /* For example: for(;;) { } */
 
   /*** Don't write any code pass this line, or it will be deleted during code generation. ***/

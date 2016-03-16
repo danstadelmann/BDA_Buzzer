@@ -13,6 +13,7 @@
 #include "FAT1.h"
 #include "VS1053.h"
 #include "player.h"
+#include "Bit1.h"
 
 #if RADIO
 #include "RApp.h"
@@ -75,7 +76,10 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
 		(void) CLS1_ReadAndParseWithCommandTable(radio_cmd_buf,
 				sizeof(radio_cmd_buf), ioRemote, CmdParserTable);
 #endif
-		FRTOS1_vTaskDelay(50/portTICK_RATE_MS);
+		if(Bit1_GetVal()){
+			PLR_StartNewFile("t3.mp3");
+		}
+		FRTOS1_vTaskDelay(15/portTICK_RATE_MS);
 	}
 }
 

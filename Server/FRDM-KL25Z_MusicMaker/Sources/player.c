@@ -239,7 +239,7 @@ static portTASK_FUNCTION( playerTask, pvParameters) {
 	(void) pvParameters; /* not used */
 	for (;;) {
 		feedDataStream();
-		FRTOS1_vTaskDelay(2 / portTICK_RATE_MS);
+		FRTOS1_vTaskDelay(15 / portTICK_RATE_MS);
 	}
 }
 
@@ -251,7 +251,7 @@ void PLR_Init(void) {
 	feedSem = FRTOS1_xSemaphoreCreateRecursiveMutex();
 
 	if (FRTOS1_xTaskCreate(playerTask, "Player", configMINIMAL_STACK_SIZE+200,
-			NULL, tskIDLE_PRIORITY, NULL) != pdPASS) {
+			NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 		for (;;) {
 		} /* error */
 	}

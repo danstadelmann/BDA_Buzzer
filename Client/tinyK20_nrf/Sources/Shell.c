@@ -6,29 +6,40 @@
  */
 
 #include "Platform.h"
-#include "Application.h"
 #include "FRTOS1.h"
 #include "Shell.h"
 #include "CLS1.h"
-#include "FAT1.h"
-#include "TmDt1.h"
-#include "KIN1.h"
 #if PL_CONFIG_HAS_SEGGER_RTT
   #include "RTT1.h"
+#endif
+#if PL_CONFIG_HAS_RADIO
+  #include "RNET1.h"
+  #include "RApp.h"
+  #include "RNet_App.h"
+  #include "RNetConf.h"
 #endif
 
 static const CLS1_ParseCommandCallback CmdParserTable[] =
 {
-	CLS1_ParseCommand,
-	FRTOS1_ParseCommand,
-	#if PL_CONFIG_HAS_RADIO
-		RNETA_ParseCommand,
-		#if RNET1_PARSE_COMMAND_ENABLED
-			RNET1_ParseCommand,
-		#endif
-	#endif /* PL_CONFIG_HAS_RADIO */
-	NULL /* sentinel */
+  CLS1_ParseCommand,
+  FRTOS1_ParseCommand,
+#if PL_CONFIG_HAS_RADIO
+#if RNET1_PARSE_COMMAND_ENABLED
+  RNET1_ParseCommand,
+#endif
+  //RNETA_ParseCommand,
+#endif
+  NULL /* sentinel */
 };
+
+#if PL_CONFIG_HAS_SEGGER_RTT
+static CLS1_ConstStdIOType RTT_Stdio = {
+  (CLS1_StdIO_In_FctType)RTT1_StdIOReadChar, /* stdin */
+  (CLS1_StdIO_OutErr_FctType)RTT1_StdIOSendChar, /* stdout */
+  (CLS1_StdIO_OutErr_FctType)RTT1_StdIOSendChar, /* stderr */
+  RTT1_StdIOKeyPressed /* if input is not empty */
+};
+#endif
 
 static void ShellTask(void *pvParameters) {
 #if PL_CONFIG_HAS_SEGGER_RTT

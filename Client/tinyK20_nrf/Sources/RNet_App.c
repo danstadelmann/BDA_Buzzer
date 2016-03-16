@@ -1,32 +1,31 @@
-/*
- * RNet_App.c
+/**
+ * \file
+ * \brief This is main application file
+ * \author (c) 2013 Erich Styger, http://mcuoneclipse.com/
+ * \note MIT License (http://opensource.org/licenses/mit-license.html)
  *
- *  Created on: Nov 27, 2015
- *      Author: daniel
+ * This module implements the application part of the program.
  */
-
 
 #include "Platform.h"
 #if PL_CONFIG_HAS_RADIO
+#include "RNet_App.h"
 #include "RNetConf.h"
+#include "Application.h"
+#include "Radio.h"
+#include "RStack.h"
+#include "RApp.h"
+#include "FRTOS1.h"
+#include "RPHY.h"
 #if RNET_CONFIG_REMOTE_STDIO
   #include "RStdIO.h"
 #endif
-#include "Application.h"
-#include "RNet_App.h"
-#include "Radio.h"
-#include "RStack.h"
-#include "RNet_App.h"
-#include "FRTOS1.h"
-#include "RPHY.h"
-#include "Shell.h"
-#include "Motor.h"
-#if PL_CONFIG_HAS_REMOTE
+#if PL_HAS_REMOTE
   #include "Remote.h"
 #endif
+#include "Shell.h"
 
-static RNWK_ShortAddrType APP_dstAddr = RNWK_ADDR_BROADCAST;
-
+static RNWK_ShortAddrType APP_dstAddr = RNWK_ADDR_BROADCAST; /* destination node address */
 
 typedef enum {
   RNETA_NONE,
@@ -46,7 +45,7 @@ static uint8_t HandleDataRxMessage(RAPP_MSG_Type type, uint8_t size, uint8_t *da
   CLS1_ConstStdIOTypePtr io = CLS1_GetStdio();
 #endif
   uint8_t val;
-
+  
   (void)size;
   (void)packet;
   switch(type) {
@@ -65,34 +64,34 @@ static uint8_t HandleDataRxMessage(RAPP_MSG_Type type, uint8_t size, uint8_t *da
 #endif
       UTIL1_strcat(buf, sizeof(buf), (unsigned char*)"\r\n");
       CLS1_SendStr(buf, io->stdOut);
-#endif /* PL_HAS_SHELL */
+#endif /* PL_HAS_SHELL */      
       return ERR_OK;
-    default: /*! \TODO Handle your own messages here */
+    default:
       break;
   } /* switch */
   return ERR_OK;
 }
 
-static const RAPP_MsgHandler handlerTable[] =
+static const RAPP_MsgHandler handlerTable[] = 
 {
 #if RNET_CONFIG_REMOTE_STDIO
   RSTDIO_HandleStdioRxMessage,
 #endif
-  HandleDataRxMessage,
-#if PL_CONFIG_HAS_REMOTE
+#if PL_COFNIG_HAS_REMOTE
   REMOTE_HandleRemoteRxMessage,
 #endif
+  HandleDataRxMessage,
   NULL /* sentinel */
 };
 
 static void RadioPowerUp(void) {
   /* need to ensure that we wait 100 ms after power-on of the transceiver */
   portTickType xTime;
-
+  
   xTime = FRTOS1_xTaskGetTickCount();
-  if (xTime<(100/portTICK_RATE_MS)) {
+  if (xTime<(100/portTICK_PERIOD_MS)) {
     /* not powered for 100 ms: wait until we can access the radio transceiver */
-    xTime = (100/portTICK_RATE_MS)-xTime; /* remaining ticks to wait */
+    xTime = (100/portTICK_PERIOD_MS)-xTime; /* remaining ticks to wait */
     FRTOS1_vTaskDelay(xTime);
   }
   (void)RNET1_PowerUp();
@@ -104,16 +103,16 @@ static void Process(void) {
     case RNETA_NONE:
       appState = RNETA_POWERUP;
       continue;
-
+      
     case RNETA_POWERUP:
       RadioPowerUp();
       appState = RNETA_TX_RX;
       break;
-
+      
     case RNETA_TX_RX:
       (void)RNET1_Process();
       break;
-
+  
     default:
       break;
     } /* switch */
@@ -121,19 +120,20 @@ static void Process(void) {
   } /* for */
 }
 
+
 static void Init(void) {
   if (RAPP_SetThisNodeAddr(RNWK_ADDR_BROADCAST)!=ERR_OK) { /* set a default address */
-    //APP_DebugPrint((unsigned char*)"ERR: Failed setting node address\r\n");
+    APP_DebugPrint((unsigned char*)"ERR: Failed setting node address\r\n");
   }
 }
 
-static void RadioTask(void *pvParameters) {
+static portTASK_FUNCTION(RadioTask, pvParameters) {
   (void)pvParameters; /* not used */
-  Init(); /* initialize address */
-  appState = RNETA_NONE; /* set state machine state */
+  Init();
+  appState = RNETA_NONE;
   for(;;) {
-    Process(); /* process state machine and radio in/out queues */
-    FRTOS1_vTaskDelay(10/portTICK_RATE_MS);
+    Process(); /* process radio in/out queues */
+    FRTOS1_vTaskDelay(5/portTICK_PERIOD_MS);
   }
 }
 
@@ -144,14 +144,14 @@ void RNETA_Deinit(void) {
 void RNETA_Init(void) {
   RNET1_Init(); /* initialize stack */
   if (RAPP_SetMessageHandlerTable(handlerTable)!=ERR_OK) { /* assign application message handler */
-    //APP_DebugPrint((unsigned char*)"ERR: failed setting message handler!\r\n");
+    APP_DebugPrint((unsigned char*)"ERR: failed setting message handler!\r\n");
   }
   if (FRTOS1_xTaskCreate(
         RadioTask,  /* pointer to the task */
         "Radio", /* task name for kernel awareness debugging */
-        configMINIMAL_STACK_SIZE+50, /* task stack size */
+        configMINIMAL_STACK_SIZE+100, /* task stack size */
         (void*)NULL, /* optional task startup argument */
-        tskIDLE_PRIORITY+1,  /* initial priority */
+        tskIDLE_PRIORITY+3,  /* initial priority */
         (xTaskHandle*)NULL /* optional task handle to create */
       ) != pdPASS) {
     /*lint -e527 */
@@ -160,12 +160,12 @@ void RNETA_Init(void) {
   }
 }
 
-#if PL_CONFIG_HAS_SHELL
+#if PL_HAS_SHELL
 static uint8_t PrintStatus(const CLS1_StdIOType *io) {
   uint8_t buf[32];
-
-  CLS1_SendStatusStr((unsigned char*)"app", (unsigned char*)"\r\n", io->stdOut);
-
+  
+  CLS1_SendStatusStr((unsigned char*)"rapp", (unsigned char*)"\r\n", io->stdOut);
+  
   UTIL1_strcpy(buf, sizeof(buf), (unsigned char*)"0x");
 #if RNWK_SHORT_ADDR_SIZE==1
   UTIL1_strcatNum8Hex(buf, sizeof(buf), APP_dstAddr);
@@ -174,12 +174,12 @@ static uint8_t PrintStatus(const CLS1_StdIOType *io) {
 #endif
   UTIL1_strcat(buf, sizeof(buf), (unsigned char*)"\r\n");
   CLS1_SendStatusStr((unsigned char*)"  dest addr", buf, io->stdOut);
-
+  
   return ERR_OK;
 }
 
 static void PrintHelp(const CLS1_StdIOType *io) {
-  CLS1_SendHelpStr((unsigned char*)"app", (unsigned char*)"Group of application commands\r\n", io->stdOut);
+  CLS1_SendHelpStr((unsigned char*)"rapp", (unsigned char*)"Group of application commands\r\n", io->stdOut);
   CLS1_SendHelpStr((unsigned char*)"  help", (unsigned char*)"Shows radio help or status\r\n", io->stdOut);
   CLS1_SendHelpStr((unsigned char*)"  saddr 0x<addr>", (unsigned char*)"Set source node address\r\n", io->stdOut);
   CLS1_SendHelpStr((unsigned char*)"  daddr 0x<addr>", (unsigned char*)"Set destination node address\r\n", io->stdOut);
@@ -195,14 +195,14 @@ uint8_t RNETA_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_S
   uint16_t val16;
   uint8_t val8;
 
-  if (UTIL1_strcmp((char*)cmd, (char*)CLS1_CMD_HELP)==0 || UTIL1_strcmp((char*)cmd, (char*)"app help")==0) {
+  if (UTIL1_strcmp((char*)cmd, (char*)CLS1_CMD_HELP)==0 || UTIL1_strcmp((char*)cmd, (char*)"rapp help")==0) {
     PrintHelp(io);
     *handled = TRUE;
-  } else if (UTIL1_strcmp((char*)cmd, (char*)CLS1_CMD_STATUS)==0 || UTIL1_strcmp((char*)cmd, (char*)"app status")==0) {
+  } else if (UTIL1_strcmp((char*)cmd, (char*)CLS1_CMD_STATUS)==0 || UTIL1_strcmp((char*)cmd, (char*)"rapp status")==0) {
     *handled = TRUE;
     return PrintStatus(io);
-  } else if (UTIL1_strncmp((char*)cmd, (char*)"app saddr", sizeof("app saddr")-1)==0) {
-    p = cmd + sizeof("app saddr")-1;
+  } else if (UTIL1_strncmp((char*)cmd, (char*)"rapp saddr", sizeof("rapp saddr")-1)==0) {
+    p = cmd + sizeof("rapp saddr")-1;
     *handled = TRUE;
     if (UTIL1_ScanHex16uNumber(&p, &val16)==ERR_OK) {
       (void)RNWK_SetThisNodeAddr((RNWK_ShortAddrType)val16);
@@ -210,17 +210,17 @@ uint8_t RNETA_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_S
       CLS1_SendStr((unsigned char*)"ERR: wrong address\r\n", io->stdErr);
       return ERR_FAILED;
     }
-  } else if (UTIL1_strncmp((char*)cmd, (char*)"app send val", sizeof("app send val")-1)==0) {
-    p = cmd + sizeof("app send val")-1;
+  } else if (UTIL1_strncmp((char*)cmd, (char*)"rapp send val", sizeof("rapp send val")-1)==0) {
+    p = cmd + sizeof("rapp send val")-1;
     *handled = TRUE;
     if (UTIL1_ScanDecimal8uNumber(&p, &val8)==ERR_OK) {
-      (void)RAPP_SendPayloadDataBlock(&val8, sizeof(val8), RAPP_MSG_TYPE_DATA, APP_dstAddr, RPHY_PACKET_FLAGS_NONE); /* only send low byte */
+      (void)RAPP_SendPayloadDataBlock(&val8, sizeof(val8), (uint8_t)RAPP_MSG_TYPE_DATA, APP_dstAddr, RPHY_PACKET_FLAGS_NONE); /* only send low byte */
     } else {
       CLS1_SendStr((unsigned char*)"ERR: wrong number format\r\n", io->stdErr);
       return ERR_FAILED;
     }
-  } else if (UTIL1_strncmp((char*)cmd, (char*)"app daddr", sizeof("app daddr")-1)==0) {
-    p = cmd + sizeof("app daddr")-1;
+  } else if (UTIL1_strncmp((char*)cmd, (char*)"rapp daddr", sizeof("rapp daddr")-1)==0) {
+    p = cmd + sizeof("rapp daddr")-1;
     *handled = TRUE;
     if (UTIL1_ScanHex16uNumber(&p, &val16)==ERR_OK) {
       APP_dstAddr = val16;
@@ -229,19 +229,19 @@ uint8_t RNETA_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_S
       return ERR_FAILED;
     }
 #if RNET_CONFIG_REMOTE_STDIO
-  } else if (UTIL1_strncmp((char*)cmd, (char*)"app send", sizeof("app send")-1)==0) {
+  } else if (UTIL1_strncmp((char*)cmd, (char*)"rapp send", sizeof("rapp send")-1)==0) {
     unsigned char buf[32];
     RSTDIO_QueueType queue;
-
-    if (UTIL1_strncmp((char*)cmd, (char*)"app send in", sizeof("app send in")-1)==0) {
+    
+    if (UTIL1_strncmp((char*)cmd, (char*)"rapp send in", sizeof("rapp send in")-1)==0) {
       queue = RSTDIO_QUEUE_TX_IN;
-      cmd += sizeof("app send in");
-    } else if (UTIL1_strncmp((char*)cmd, (char*)"app send out", sizeof("app send out")-1)==0) {
-      queue = RSTDIO_QUEUE_TX_OUT;
-      cmd += sizeof("app send out");
-    } else if (UTIL1_strncmp((char*)cmd, (char*)"app send err", sizeof("app send err")-1)==0) {
-      queue = RSTDIO_QUEUE_TX_ERR;
-      cmd += sizeof("app send err");
+      cmd += sizeof("rapp send in");
+    } else if (UTIL1_strncmp((char*)cmd, (char*)"rapp send out", sizeof("rapp send out")-1)==0) {
+      queue = RSTDIO_QUEUE_TX_OUT;      
+      cmd += sizeof("rapp send out");
+    } else if (UTIL1_strncmp((char*)cmd, (char*)"rapp send err", sizeof("rapp send err")-1)==0) {
+      queue = RSTDIO_QUEUE_TX_ERR;      
+      cmd += sizeof("rapp send err");
     } else {
       return ERR_OK; /* not handled */
     }
@@ -256,8 +256,6 @@ uint8_t RNETA_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_S
   }
   return res;
 }
-#endif /* PL_CONFIG_HAS_SHELL */
+#endif /* PL_HAS_SHELL */
 
-#endif /* PL_CONFIG_HAS_RADIO */
-
-
+#endif /* PL_HAS_RADIO */

@@ -1,15 +1,14 @@
 /* ###################################################################
 **     Filename    : Events.h
-**     Project     : FRDM-KL25Z_MusicMaker
-**     Processor   : MKL25Z128VLK4
+**     Project     : tinyK20_nrf
+**     Processor   : MK20DX128VFT5
 **     Component   : Events
 **     Version     : Driver 01.00
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2014-11-18, 13:26, # CodeGen: 0
+**     Date/Time   : 2016-02-25, 18:31, # CodeGen: 0
 **     Abstract    :
 **         This is user's event module.
 **         Put your event handler code here.
-**     Settings    :
 **     Contents    :
 **         Cpu_OnNMIINT - void Cpu_OnNMIINT(void);
 **
@@ -34,46 +33,24 @@
 #include "PE_Error.h"
 #include "PE_Const.h"
 #include "IO_Map.h"
-#include "FRTOS1.h"
-#include "LEDR.h"
-#include "LEDpin1.h"
-#include "BitIoLdd1.h"
-#include "LEDG.h"
-#include "LEDpin2.h"
-#include "BitIoLdd2.h"
-#include "TmDt1.h"
-#include "WAIT1.h"
-#include "TMOUT1.h"
-#include "SM1.h"
-#include "FAT1.h"
-#include "SD1.h"
-#include "SS2.h"
-#include "CD2.h"
-#include "UTIL1.h"
-#include "AS1.h"
-#include "ASerialLdd1.h"
-#include "CLS1.h"
-#include "CS1.h"
-#include "PTD.h"
-#include "MCS.h"
-#include "BitIoLdd4.h"
-#include "DCS.h"
-#include "BitIoLdd6.h"
-#include "DREQ.h"
-#include "BitIoLdd5.h"
-#include "KSDK1.h"
 #include "RNET1.h"
+#include "UTIL1.h"
 #include "RF1.h"
 #include "CE1.h"
-#include "BitIoLdd7.h"
+#include "BitIoLdd1.h"
 #include "CSN1.h"
-#include "BitIoLdd8.h"
-#include "SM2.h"
+#include "BitIoLdd2.h"
+#include "WAIT1.h"
+#include "FRTOS1.h"
+#include "SM1.h"
 #include "SMasterLdd1.h"
-#include "blinky_light.h"
-#include "BitIoLdd9.h"
-#include "Bit1.h"
-#include "BitIoLdd10.h"
+#include "CLS1.h"
+#include "CS1.h"
+#include "KSDK1.h"
+#include "LED1.h"
+#include "LEDpin1.h"
+#include "BitIoLdd3.h"
+#include "RTT1.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -83,7 +60,7 @@ extern "C" {
 ** ===================================================================
 **     Event       :  Cpu_OnNMIINT (module Events)
 **
-**     Component   :  Cpu [MKL25Z128LK4]
+**     Component   :  Cpu [MK20DX128EX5]
 */
 /*!
 **     @brief
@@ -126,6 +103,20 @@ void FRTOS1_vApplicationTickHook(void);
 ** ===================================================================
 */
 
+void FRTOS1_vApplicationIdleHook(void);
+/*
+** ===================================================================
+**     Event       :  FRTOS1_vApplicationIdleHook (module Events)
+**
+**     Component   :  FRTOS1 [FreeRTOS]
+**     Description :
+**         If enabled, this hook will be called when the RTOS is idle.
+**         This might be a good place to go into low power mode.
+**     Parameters  : None
+**     Returns     : Nothing
+** ===================================================================
+*/
+
 void FRTOS1_vApplicationMallocFailedHook(void);
 /*
 ** ===================================================================
@@ -140,65 +131,22 @@ void FRTOS1_vApplicationMallocFailedHook(void);
 ** ===================================================================
 */
 
+void SM1_OnRxCharExt(SM1_TComData Chr);
 /*
 ** ===================================================================
-**     Event       :  SD1_OnBlockReceived (module SD1)
+**     Event       :  SM1_OnRxCharExt (module Events)
 **
-**     Component   :  SM1 [SPIMaster_LDD]
-*/
-/*!
-**     @brief
-**         This event is called when the requested number of data is
-**         moved to the input buffer. This method is available only if
-**         the ReceiveBlock method is enabled.
-**     @param
-**         UserDataPtr     - Pointer to the user or
-**                           RTOS specific data. The pointer is passed
-**                           as the parameter of Init method. 
-*/
-/* ===================================================================*/
-void SD1_OnBlockReceived(LDD_TUserData *UserDataPtr);
-
-void SD1_OnActivate(byte mode);
-/*
-** ===================================================================
-**     Event       :  SD1_OnActivate (module Events)
-**
-**     Component   :  SD1 [SD_Card]
+**     Component   :  SM1 [SynchroMaster]
 **     Description :
-**         Event called when Activate() method is called. This gives an
-**         opportunity to the application to synchronize access to a
-**         shared bus.
-**     Parameters  : None
-**     Returns     : Nothing
-** ===================================================================
-*/
-
-void SD1_OnDeactivate(byte mode);
-/*
-** ===================================================================
-**     Event       :  SD1_OnDeactivate (module Events)
-**
-**     Component   :  SD1 [SD_Card]
-**     Description :
-**         Event called when Deactivate() method is called. This gives
-**         an opportunity to the application to synchronize access to a
-**         shared bus.
-**     Parameters  : None
-**     Returns     : Nothing
-** ===================================================================
-*/
-
-void EInt1_OnInterrupt(void);
-/*
-** ===================================================================
-**     Event       :  EInt1_OnInterrupt (module Events)
-**
-**     Component   :  EInt1 [ExtInt]
-**     Description :
-**         This event is called when an active signal edge/level has
-**         occurred.
-**     Parameters  : None
+**         This event is called after a correct character is received.
+**         The parameter of the event contains the last received
+**         character. If an input buffer is used, the character is also
+**         inserted into the buffer.
+**         The event is available only when the <Interrupt
+**         service/event> property is enabled.
+**     Parameters  :
+**         NAME            - DESCRIPTION
+**         Chr             - The last received character
 **     Returns     : Nothing
 ** ===================================================================
 */
@@ -217,7 +165,7 @@ void EInt1_OnInterrupt(void);
 /*
 ** ###################################################################
 **
-**     This file was created by Processor Expert 10.4 [05.11]
+**     This file was created by Processor Expert 10.5 [05.21]
 **     for the Freescale Kinetis series of microcontrollers.
 **
 ** ###################################################################

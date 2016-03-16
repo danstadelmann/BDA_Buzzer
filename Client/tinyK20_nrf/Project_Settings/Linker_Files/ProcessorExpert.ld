@@ -4,13 +4,13 @@
 /*##                                   */
 /*##     Filename  : ProcessorExpert.ld */
 /*##                                   */
-/*##     Project   : tinyK20_Demo      */
+/*##     Project   : tinyK20_nrf       */
 /*##                                   */
 /*##     Processor : MK20DX128VFT5     */
 /*##                                   */
 /*##     Compiler  : GNU C Compiler    */
 /*##                                   */
-/*##     Date/Time : 2016-02-24, 16:02, # CodeGen: 0 */
+/*##     Date/Time : 2016-03-16, 14:25, # CodeGen: 0 */
 /*##                                   */
 /*##     Abstract  :                   */
 /*##                                   */
@@ -34,7 +34,7 @@ __stack = _estack;
 
 /* Generate a link error if heap and stack don't fit into RAM */
 __heap_size = 0x00;                    /* required amount of heap  */
-__stack_size = 0x0150;                 /* required amount of stack */
+__stack_size = 0x0400;                 /* required amount of stack */
 
 MEMORY {
   m_interrupts (RX) : ORIGIN = 0x00000000, LENGTH = 0x000000F8
