@@ -37,6 +37,8 @@
 #include "UTIL1.h"
 #include "SHP.h"
 #include "BitIoLdd4.h"
+#include "BUZ.h"
+#include "BitIoLdd5.h"
 #include "RF1.h"
 #include "CE1.h"
 #include "BitIoLdd1.h"
@@ -152,6 +154,23 @@ void SM1_OnRxCharExt(SM1_TComData Chr);
 **     Returns     : Nothing
 ** ===================================================================
 */
+
+/*
+** ===================================================================
+**     Event       :  EInt1_OnInterrupt (module Events)
+**
+**     Component   :  EInt1 [ExtInt_LDD]
+*/
+/*!
+**     @brief
+**         This event is called when an active signal edge/level has
+**         occurred.
+**     @param
+**         UserDataPtr     - Pointer to RTOS device
+**                           data structure pointer.
+*/
+/* ===================================================================*/
+void EInt1_OnInterrupt(LDD_TUserData *UserDataPtr);
 
 /* END Events */
 

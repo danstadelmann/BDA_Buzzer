@@ -28,6 +28,10 @@
 
 #include "Cpu.h"
 #include "Events.h"
+#include "RApp.h"
+#include "RNET1.h"
+#include "RNet_App.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -164,6 +168,27 @@ void FRTOS1_vApplicationMallocFailedHook(void)
 void SM1_OnRxCharExt(SM1_TComData Chr)
 {
   /* Write your code here ... */
+}
+
+/*
+** ===================================================================
+**     Event       :  EInt1_OnInterrupt (module Events)
+**
+**     Component   :  EInt1 [ExtInt_LDD]
+*/
+/*!
+**     @brief
+**         This event is called when an active signal edge/level has
+**         occurred.
+**     @param
+**         UserDataPtr     - Pointer to RTOS device
+**                           data structure pointer.
+*/
+/* ===================================================================*/
+void EInt1_OnInterrupt(LDD_TUserData *UserDataPtr) {
+	uint8_t data = 'A';
+	(void) RAPP_SendPayloadDataBlock(&data, sizeof(char_t),
+			RAPP_MSG_TYPE_DATA, RNETA_GetDestAddr(), RPHY_PACKET_FLAGS_REQ_ACK);
 }
 
 /* END Events */
