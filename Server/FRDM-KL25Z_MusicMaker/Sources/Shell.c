@@ -79,13 +79,13 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
 		if(Bit1_GetVal()){
 			PLR_StartNewFile("t3.mp3");
 		}
-		FRTOS1_vTaskDelay(15/portTICK_RATE_MS);
+		FRTOS1_vTaskDelay(10/portTICK_RATE_MS);
 	}
 }
 
 void SHELL_Init(void) {
 	if (FRTOS1_xTaskCreate(ShellTask, "Shell", configMINIMAL_STACK_SIZE+200,
-			NULL, tskIDLE_PRIORITY, NULL) != pdPASS) {
+			NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
 		for (;;) {
 		} /* error */
 	}

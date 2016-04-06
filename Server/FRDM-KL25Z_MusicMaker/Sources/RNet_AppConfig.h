@@ -16,7 +16,7 @@ typedef enum {
   RAPP_MSG_TYPE_STDIN = 0x40,
   RAPP_MSG_TYPE_STDOUT = 0x41,
   RAPP_MSG_TYPE_STDERR = 0x42,
-  RAPP_MSG_TYPE_HONK = 0x45,
+  RAPP_MSG_TYPE_HONK = 0x4,
  } RAPP_MSG_Type;
 
 #endif /* __RNET_APP_CONFIG__ */

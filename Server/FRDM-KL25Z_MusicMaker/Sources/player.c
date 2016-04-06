@@ -13,10 +13,16 @@
 #include "FRTOS1.h"
 #include "FAT1.h"
 #include "CS1.h"
+#include "blinky_light.h"
+#include "TmDt1.h"
+
+static bool turning = FALSE;
+static int32_t turntime = 0;
 
 static bool playback = FALSE;
 static FIL fp;
 UINT bytesRead;
+uint32_t config_turnval = 134;
 static SemaphoreHandle_t feedSem;
 
 void clearPlayback(void) {
@@ -94,6 +100,8 @@ void feedDataStream(void) {
 uint8_t PLR_StartNewFile(const char* filename) {
 	uint16_t data;
 	//Stop actual playback
+	turning = TRUE;
+	turntime = config_turnval; /*Turn for 2s*/
 
 	PLR_StopPlayback();
 	VS_ReadRegister(VS_MODE, &data);
@@ -187,6 +195,9 @@ static uint8_t PrintHelp(const CLS1_StdIOType *io) {
 
 	CLS1_SendHelpStr((unsigned char*) "  player stop",
 			(unsigned char*) "player stop ", io->stdOut);
+
+	CLS1_SendHelpStr((unsigned char*) "  player setval <val>",
+			(unsigned char*) "Sets time duration of alarmlight ", io->stdOut);
 	return ERR_OK;
 }
 
@@ -230,15 +241,40 @@ uint8_t PLR_ParseCommand(const unsigned char *cmd, bool *handled,
 			sizeof("player stop") - 1) == 0) {
 		*handled = TRUE;
 		PLR_StopPlayback();
+	}else if (UTIL1_strncmp((char*)cmd, "player setval", sizeof("player setval")-1)==0) {
+	    p = cmd+sizeof("player setval")-1;
+	    uint8_t res = UTIL1_xatoi(&p, &val32u);
+	    if (res==ERR_OK) {
+	      config_turnval = val32u;
+	      *handled = TRUE;
+	    }
 	}
+
 	return ERR_OK;
 }
 
+void turnlight(void){
+	if(turning == TRUE){
+		if(turntime > 0){
+			blinky_light_SetVal();
+			turntime--;
+		}else{
+			turning = FALSE;
+			turntime = 0;
+			blinky_light_ClrVal();
+		}
+	}
+}
 static portTASK_FUNCTION( playerTask, pvParameters) {
 
 	(void) pvParameters; /* not used */
+	static TIMEREC myTime;
 	for (;;) {
-		feedDataStream();
+		turnlight();
+		TmDt1_GetTime(&myTime);
+		if (!((myTime.Hour >= 8) && (myTime.Hour <= 12)) || ((myTime.Hour >= 13) && (myTime.Hour <= 18))) {
+			feedDataStream();
+		}
 		FRTOS1_vTaskDelay(15 / portTICK_RATE_MS);
 	}
 }
@@ -249,9 +285,9 @@ void PLR_Deinit(void) {
 
 void PLR_Init(void) {
 	feedSem = FRTOS1_xSemaphoreCreateRecursiveMutex();
-
+	blinky_light_ClrVal();
 	if (FRTOS1_xTaskCreate(playerTask, "Player", configMINIMAL_STACK_SIZE+200,
-			NULL, tskIDLE_PRIORITY+1, NULL) != pdPASS) {
+			NULL, tskIDLE_PRIORITY+2, NULL) != pdPASS) {
 		for (;;) {
 		} /* error */
 	}

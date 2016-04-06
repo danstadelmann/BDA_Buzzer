@@ -23,7 +23,7 @@
 #include "Shell.h"
 #include "CLS1.h"
 #include "VS1053.h"
-#include "TmDt1.h"
+
 
 #if PLAYER
 #include "player.h"
@@ -37,7 +37,7 @@ typedef enum {
 } RNETA_State;
 
 static RNETA_State appState = RNETA_NONE;
-static TIMEREC myTime;
+
 RNWK_ShortAddrType RNETA_GetDestAddr(void) {
 	return APP_dstAddr;
 }
@@ -56,12 +56,7 @@ static uint8_t HandleDataRxMessage(RAPP_MSG_Type type, uint8_t size,
 	switch (type) {
 	case RAPP_MSG_TYPE_HONK:
 #if PLAYER
-		TmDt1_GetTime(&myTime);
-		if (!((myTime.Hour >= 8) && (myTime.Hour <= 12)) || ((myTime.Hour >= 13) && (myTime.Hour <= 18))) {
-			PLR_StartNewFile("t1.mp3");
-		}
-
-
+			PLR_StartNewFile("t3.mp3");
 #endif
 		break;
 	} /* switch */
