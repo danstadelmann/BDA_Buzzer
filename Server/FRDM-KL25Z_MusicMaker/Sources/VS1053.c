@@ -200,7 +200,7 @@ uint8_t VS_PlaySong(const uint8_t *fileName, const CLS1_StdIOType *io) {
   return res;
 }
 
-static uint8_t PrintStatus(const CLS1_StdIOType *io) {
+uint8_t VS_PrintStatus(const CLS1_StdIOType *io) {
   uint8_t buf[24];
   uint16_t val;
 
@@ -263,7 +263,7 @@ uint8_t VS_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_StdI
     return PrintHelp(io);
   } else if ((UTIL1_strcmp((char*)cmd, CLS1_CMD_STATUS)==0) || (UTIL1_strcmp((char*)cmd, "VS1053 status")==0)) {
     *handled = TRUE;
-    return PrintStatus(io);
+    return VS_PrintStatus(io);
   } else if (UTIL1_strncmp((char*)cmd, "VS1053 volume ", sizeof("VS1053 volume ")-1)==0) {
     *handled = TRUE;
     p = cmd+sizeof("VS1053 volume ")-1;

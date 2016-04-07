@@ -112,5 +112,5 @@ void VS_Init(void);
  * \brief Driver deinitalization
  */
 void VS_Deinit(void);
-
+uint8_t VS_PrintStatus(const CLS1_StdIOType *io);
 #endif /* VS1053_H_ */

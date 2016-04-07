@@ -55,8 +55,38 @@ static uint8_t HandleDataRxMessage(RAPP_MSG_Type type, uint8_t size,
 	(void) packet;
 	switch (type) {
 	case RAPP_MSG_TYPE_HONK:
+		*handled = TRUE;
 #if PLAYER
-			PLR_StartNewFile("t3.mp3");
+		val = *data;
+		if(val == 'A'){
+			PLR_StartNewFile("horn.mp3",TRUE);
+		}else if(val == 'B'){
+			PLR_StartNewFile("miau.mp3",FALSE);
+		}else if(val == 'C'){
+			PLR_StartNewFile("bier.mp3",FALSE);
+		}else if(val == 'D'){
+			PLR_StartNewFile("sirene.mp3",FALSE);
+		}else if(val == 'E'){
+
+		}else if(val == 'F'){
+
+		}else if(val == 'G'){
+
+		}else if(val == 'H'){
+
+		}else if(val == 'I'){
+
+		}else if(val == 'J'){
+
+		}else if(val == 'K'){
+
+		}else if(val == 'L'){
+
+		}else if(val == 'M'){
+
+		}else if(val == 'N'){
+
+		}
 #endif
 		break;
 	} /* switch */

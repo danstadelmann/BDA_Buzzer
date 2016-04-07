@@ -16,14 +16,17 @@
 #include "blinky_light.h"
 #include "TmDt1.h"
 
+
+#define TASKDEL_MS 2
+
 static bool turning = FALSE;
 static int32_t turntime = 0;
 
 static bool playback = FALSE;
 static FIL fp;
 UINT bytesRead;
-uint32_t config_turnval = 134;
-static SemaphoreHandle_t feedSem;
+uint32_t config_turnval = 1;
+//static SemaphoreHandle_t feedSem;
 
 void clearPlayback(void) {
 	CS1_CriticalVariable()
@@ -58,11 +61,10 @@ bool PlaybackIsSet(void) {
 }
 
 void feedDataStream(void) {
-
 	uint8_t readBuf[32];
 	uint8_t res = ERR_OK;
 
-	FRTOS1_xSemaphoreTakeRecursive(feedSem, portMAX_DELAY);
+	//FRTOS1_xSemaphoreTakeRecursive(feedSem, portMAX_DELAY);
 
 	if (!PlaybackIsSet()) {
 		return; // paused or stopped
@@ -70,39 +72,36 @@ void feedDataStream(void) {
 
 
 	// Feed the hungry buffer! :)
-	while (VS_Ready()) {
+	if (VS_Ready()) {
 		//for (;;) { /* breaks */
 			if (FAT1_read(&fp, readBuf, sizeof(readBuf), &bytesRead) != FR_OK) {
-				FRTOS1_xSemaphoreGiveRecursive(feedSem);
+				//FRTOS1_xSemaphoreGiveRecursive(feedSem);
+				PLR_StopPlayback();
 				return;
 			}
-			if (bytesRead == 0) { /* end of file? */
-				break;
-			}
-		/*	while (!VS_Ready()) {
-				break;*/
-			//}
-			VS_SendData(readBuf, sizeof(readBuf));
-		//}
 
-		if (bytesRead == 0) {
-			// must be at the end of the file, wrap it up!
-			FRTOS1_xSemaphoreGiveRecursive(feedSem);
-			PLR_StopPlayback();
-			return;
-		}
+			if (bytesRead == 0) { /* end of file? */
+				// must be at the end of the file, wrap it up!
+				//FRTOS1_xSemaphoreGiveRecursive(feedSem);
+				PLR_StopPlayback();
+				return;
+			}
+			VS_SendData(readBuf, sizeof(readBuf));
 	}
 
-	FRTOS1_xSemaphoreGiveRecursive(feedSem);
+
+	//FRTOS1_xSemaphoreGiveRecursive(feedSem);
 
 }
 
-uint8_t PLR_StartNewFile(const char* filename) {
-	uint16_t data;
-	//Stop actual playback
-	turning = TRUE;
-	turntime = config_turnval; /*Turn for 2s*/
+uint8_t PLR_StartNewFile(const char* filename, bool turn) {
 
+	uint16_t data;
+	if(turn == TRUE){
+		turning = TRUE;
+		turntime = (config_turnval*1000)/TASKDEL_MS; /*Turn in taskcycles*/
+	}
+	//Stop actual playback
 	PLR_StopPlayback();
 	VS_ReadRegister(VS_MODE, &data);
 	data = (data | VS_MODE_SM_LINE1 | VS_MODE_SM_SDINEW);
@@ -126,16 +125,14 @@ uint8_t PLR_StartNewFile(const char* filename) {
 		//wait until DREQ high
 	}
 	bytesRead = 0;
-	//while(PlaybackIsSet() && VS_Ready()){
-	//feedDataStream();
-	//}
+
 	return ERR_OK;
 
 }
 
 uint8_t PLR_PlayFullFile(const char* filename) {
 	uint8_t err = ERR_OK;
-	err = PLR_StartNewFile(filename);
+	err = PLR_StartNewFile(filename,FALSE);
 	if (err != ERR_OK) {
 		return err;
 	}
@@ -146,30 +143,32 @@ uint8_t PLR_PlayFullFile(const char* filename) {
 }
 
 uint8_t PLR_PausePlayback(bool pause) {
+
 	if (pause) {
 		clearPlayback();
 	} else {
 		if (fp.fs != 0) {
 			setPlayback();
-			//feedDataStream();
 		}
 	}
+
 	return ERR_OK;
 }
 
 uint8_t PLR_StopPlayback(void) {
 	uint16_t data;
+
 	VS_ReadRegister(VS_MODE, &data);
 	data = (data | VS_MODE_SM_LINE1 | VS_MODE_SM_SDINEW | VS_MODE_SM_CANCEL);
 	VS_WriteRegister(VS_MODE, data);
 
 	clearPlayback();
 	FAT1_close(&fp);
+
 }
 
 static uint8_t PrintStatus(const CLS1_StdIOType *io) {
-
-	return ERR_OK;
+	return VS_PrintStatus(io);
 }
 
 static uint8_t PrintHelp(const CLS1_StdIOType *io) {
@@ -194,7 +193,7 @@ static uint8_t PrintHelp(const CLS1_StdIOType *io) {
 			(unsigned char*) "player pause off \r\n", io->stdOut);
 
 	CLS1_SendHelpStr((unsigned char*) "  player stop",
-			(unsigned char*) "player stop ", io->stdOut);
+			(unsigned char*) "player stop \r\n", io->stdOut);
 
 	CLS1_SendHelpStr((unsigned char*) "  player setval <val>",
 			(unsigned char*) "Sets time duration of alarmlight ", io->stdOut);
@@ -228,7 +227,7 @@ uint8_t PLR_ParseCommand(const unsigned char *cmd, bool *handled,
 			sizeof("player play ") - 1) == 0) {
 		*handled = TRUE;
 		p = cmd + sizeof("player play ") - 1;
-		return PLR_StartNewFile(p);
+		return PLR_StartNewFile(p,FALSE);
 	}else if (UTIL1_strncmp((char* )cmd, "player pause on",
 			sizeof("player pause on") - 1) == 0) {
 		*handled = TRUE;
@@ -272,10 +271,12 @@ static portTASK_FUNCTION( playerTask, pvParameters) {
 	for (;;) {
 		turnlight();
 		TmDt1_GetTime(&myTime);
-		if (!((myTime.Hour >= 8) && (myTime.Hour <= 12)) || ((myTime.Hour >= 13) && (myTime.Hour <= 18))) {
+		if (!(((myTime.Hour >= 9) && (myTime.Hour < 12)) || ((myTime.Hour >= 13) && (myTime.Hour < 17)))) {
 			feedDataStream();
+		}else{
+			PLR_StopPlayback();
 		}
-		FRTOS1_vTaskDelay(15 / portTICK_RATE_MS);
+		FRTOS1_vTaskDelay(TASKDEL_MS / portTICK_RATE_MS);
 	}
 }
 
@@ -284,13 +285,13 @@ void PLR_Deinit(void) {
 }
 
 void PLR_Init(void) {
-	feedSem = FRTOS1_xSemaphoreCreateRecursiveMutex();
+	//feedSem = FRTOS1_xSemaphoreCreateRecursiveMutex();
 	blinky_light_ClrVal();
 	if (FRTOS1_xTaskCreate(playerTask, "Player", configMINIMAL_STACK_SIZE+200,
-			NULL, tskIDLE_PRIORITY+2, NULL) != pdPASS) {
+			NULL, tskIDLE_PRIORITY+3, NULL) != pdPASS) {
 		for (;;) {
 		} /* error */
 	}
-	  FRTOS1_vQueueAddToRegistry(feedSem, "feedSem");
+	  //FRTOS1_vQueueAddToRegistry(feedSem, "feedSem");
 }
 #endif

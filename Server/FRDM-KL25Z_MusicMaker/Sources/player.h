@@ -18,7 +18,7 @@
  * \param filename pointer to the filename
  * \return standard errorcodes of pe_error.h
  */
-uint8_t PLR_StartNewFile(const char* filename);
+uint8_t PLR_StartNewFile(const char* filename, bool turn);
 
 /*!
  * \brief Plays a full file. Is blocking until the file is finished!
@@ -48,6 +48,7 @@ uint8_t PLR_StopPlayback(void);
  * \return Error code, ERR_OK if everything is OK
  */
 uint8_t PLR_ParseCommand(const unsigned char *cmd, bool *handled, const CLS1_StdIOType *io);
+
 
 void PLR_Init(void);
 

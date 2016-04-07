@@ -29,7 +29,7 @@ static const CLS1_ParseCommandCallback CmdParserTable[] = { CLS1_ParseCommand,
 #if FAT1_PARSE_COMMAND_ENABLED
 		FAT1_ParseCommand,
 #endif
-		VS_ParseCommand,
+		//VS_ParseCommand,
 #if PLAYER
 		PLR_ParseCommand,
 #endif
@@ -77,7 +77,7 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
 				sizeof(radio_cmd_buf), ioRemote, CmdParserTable);
 #endif
 		if(Bit1_GetVal()){
-			PLR_StartNewFile("t3.mp3");
+			PLR_StartNewFile("miau.mp3",FALSE);
 		}
 		FRTOS1_vTaskDelay(10/portTICK_RATE_MS);
 	}
