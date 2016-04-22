@@ -68,8 +68,10 @@
 #include "SMasterLdd1.h"
 #include "blinky_light.h"
 #include "BitIoLdd9.h"
-#include "Bit1.h"
+#include "CoinDetect.h"
 #include "BitIoLdd10.h"
+#include "ChangeDetect.h"
+#include "BitIoLdd11.h"
 /* Including shared modules, which are used for whole project */
 #include "PE_Types.h"
 #include "PE_Error.h"

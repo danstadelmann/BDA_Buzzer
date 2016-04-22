@@ -72,8 +72,10 @@
 #include "SMasterLdd1.h"
 #include "blinky_light.h"
 #include "BitIoLdd9.h"
-#include "Bit1.h"
+#include "CoinDetect.h"
 #include "BitIoLdd10.h"
+#include "ChangeDetect.h"
+#include "BitIoLdd11.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -13,7 +13,8 @@
 #include "FAT1.h"
 #include "VS1053.h"
 #include "player.h"
-#include "Bit1.h"
+#include "CoinDetect.h"
+#include "ChangeDetect.h"
 
 #if RADIO
 #include "RApp.h"
@@ -76,10 +77,17 @@ static portTASK_FUNCTION(ShellTask, pvParameters) {
 		(void) CLS1_ReadAndParseWithCommandTable(radio_cmd_buf,
 				sizeof(radio_cmd_buf), ioRemote, CmdParserTable);
 #endif
-		if(Bit1_GetVal()){
+		if(!CoinDetect_GetVal()){
 			PLR_StartNewFile("miau.mp3",FALSE);
+			while(!CoinDetect_GetVal());
+			FRTOS1_vTaskDelay(50/portTICK_RATE_MS);
 		}
-		FRTOS1_vTaskDelay(10/portTICK_RATE_MS);
+		if(!ChangeDetect_GetVal()){
+			PLR_StartNewFile("horn.mp3",FALSE);
+			while(!ChangeDetect_GetVal());
+			FRTOS1_vTaskDelay(50/portTICK_RATE_MS);
+		}
+		FRTOS1_vTaskDelay(50/portTICK_RATE_MS);
 	}
 }
 

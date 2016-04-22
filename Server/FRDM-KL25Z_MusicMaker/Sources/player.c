@@ -24,7 +24,6 @@ static int32_t turntime = 0;
 
 static bool playback = FALSE;
 static FIL fp;
-UINT bytesRead;
 uint32_t config_turnval = 1;
 //static SemaphoreHandle_t feedSem;
 
@@ -63,6 +62,7 @@ bool PlaybackIsSet(void) {
 void feedDataStream(void) {
 	uint8_t readBuf[32];
 	uint8_t res = ERR_OK;
+	UINT bytesRead = 0;
 
 	//FRTOS1_xSemaphoreTakeRecursive(feedSem, portMAX_DELAY);
 
@@ -86,6 +86,7 @@ void feedDataStream(void) {
 				PLR_StopPlayback();
 				return;
 			}
+
 			VS_SendData(readBuf, sizeof(readBuf));
 	}
 
@@ -103,6 +104,7 @@ uint8_t PLR_StartNewFile(const char* filename, bool turn) {
 	}
 	//Stop actual playback
 	PLR_StopPlayback();
+
 	VS_ReadRegister(VS_MODE, &data);
 	data = (data | VS_MODE_SM_LINE1 | VS_MODE_SM_SDINEW);
 	VS_WriteRegister(VS_MODE, data);
@@ -124,7 +126,6 @@ uint8_t PLR_StartNewFile(const char* filename, bool turn) {
 	while (!VS_Ready()) {
 		//wait until DREQ high
 	}
-	bytesRead = 0;
 
 	return ERR_OK;
 
@@ -158,13 +159,12 @@ uint8_t PLR_PausePlayback(bool pause) {
 uint8_t PLR_StopPlayback(void) {
 	uint16_t data;
 
-	VS_ReadRegister(VS_MODE, &data);
-	data = (data | VS_MODE_SM_LINE1 | VS_MODE_SM_SDINEW | VS_MODE_SM_CANCEL);
-	VS_WriteRegister(VS_MODE, data);
-
 	clearPlayback();
 	FAT1_close(&fp);
 
+	VS_ReadRegister(VS_MODE, &data);
+	data = (data | VS_MODE_SM_LINE1 | VS_MODE_SM_SDINEW | VS_MODE_SM_CANCEL);
+	VS_WriteRegister(VS_MODE, data);
 }
 
 static uint8_t PrintStatus(const CLS1_StdIOType *io) {
@@ -264,18 +264,16 @@ void turnlight(void){
 		}
 	}
 }
+
 static portTASK_FUNCTION( playerTask, pvParameters) {
 
 	(void) pvParameters; /* not used */
-	static TIMEREC myTime;
+
+	//VS_SetVolume(0x2014);
+	VS_SetVolume(0x0000);
 	for (;;) {
 		turnlight();
-		TmDt1_GetTime(&myTime);
-		if (!(((myTime.Hour >= 9) && (myTime.Hour < 12)) || ((myTime.Hour >= 13) && (myTime.Hour < 17)))) {
-			feedDataStream();
-		}else{
-			PLR_StopPlayback();
-		}
+        feedDataStream();
 		FRTOS1_vTaskDelay(TASKDEL_MS / portTICK_RATE_MS);
 	}
 }
@@ -287,6 +285,7 @@ void PLR_Deinit(void) {
 void PLR_Init(void) {
 	//feedSem = FRTOS1_xSemaphoreCreateRecursiveMutex();
 	blinky_light_ClrVal();
+
 	if (FRTOS1_xTaskCreate(playerTask, "Player", configMINIMAL_STACK_SIZE+200,
 			NULL, tskIDLE_PRIORITY+3, NULL) != pdPASS) {
 		for (;;) {
