@@ -148,7 +148,7 @@ uint8_t PLR_PausePlayback(bool pause) {
 	if (pause) {
 		clearPlayback();
 	} else {
-		if (fp.fs != 0) {
+		if (fp.obj.fs != 0) {
 			setPlayback();
 		}
 	}
